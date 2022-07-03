@@ -1,0 +1,11 @@
+docs:
+  country-to-documents-required:
+    India:
+      - Aadhaar
+      - INR-License
+      - INR-RC
+      - INR-PAN
+    USA:
+      - SocialSecurity
+      - US-License
+      - US-RC
