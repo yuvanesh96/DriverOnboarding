@@ -80,4 +80,8 @@ public class SignupService {
 
         return configurationManager.getRequiredDocuments(driver.getCountry());
     }
+
+    public List<Driver> getDrivers(){
+        return driverManager.getDrivers();
+    }
 }

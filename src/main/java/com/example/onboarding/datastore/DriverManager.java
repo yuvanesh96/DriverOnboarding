@@ -5,7 +5,9 @@ import com.example.onboarding.model.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -65,5 +67,9 @@ public class DriverManager {
 
     public String getCabOwned(@NonNull String driverId) {
         return ownsCab.get(driverId);
+    }
+
+    public List<Driver> getDrivers(){
+        return new ArrayList<>(drivers.values());
     }
 }

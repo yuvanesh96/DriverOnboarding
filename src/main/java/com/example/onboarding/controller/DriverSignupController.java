@@ -2,6 +2,7 @@ package com.example.onboarding.controller;
 
 import com.example.onboarding.model.Driver;
 import com.example.onboarding.model.response.DocumentListResponse;
+import com.example.onboarding.model.response.DriversDetailResponse;
 import com.example.onboarding.model.response.GenericResponse;
 import com.example.onboarding.model.response.RegisterDriverResponse;
 import com.example.onboarding.model.response.UpdateVerifiedDocumentResponse;
@@ -83,4 +84,18 @@ public class DriverSignupController {
         return new ResponseEntity<>(new DocumentListResponse(list),HttpStatus.OK);
     }
 
+    // Just for testing only.
+    @RequestMapping(value = "/v1/list/drivers", method =
+            RequestMethod.GET)
+    public ResponseEntity getDriverDetails() {
+        List<Driver> list;
+        try{
+            list = signupService.getDrivers();
+        }
+        catch (RuntimeException e){
+            return new ResponseEntity<>(new GenericResponse(e.toString()),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(new DriversDetailResponse(list),HttpStatus.OK);
+    }
 }
