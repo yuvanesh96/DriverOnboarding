@@ -1,12 +1,16 @@
 package com.example.onboarding.datastore;
 
 import com.example.onboarding.configuration.DocumentsRequired;
+
+import org.springframework.stereotype.Repository;
+
 import lombok.NonNull;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Repository
 public class ConfigurationManager {
     private final DocumentsRequired documentsRequired;
     private Set<String> countries = new HashSet<>();

@@ -4,7 +4,6 @@ docs:
       - Aadhaar
       - INR-License
       - INR-RC
-      - INR-PAN
     USA:
       - SocialSecurity
       - US-License

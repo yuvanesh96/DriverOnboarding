@@ -2,6 +2,9 @@ package com.example.onboarding.datastore;
 
 import com.example.onboarding.model.Driver;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.NonNull;
 
 /* Inmemory DB for storing Driver information */
+@Repository
 public class DriverManager {
     ConcurrentHashMap<String, Driver> drivers = new ConcurrentHashMap<>();
     ConcurrentHashMap<String, String> phDirectory = new ConcurrentHashMap<>();

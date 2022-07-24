@@ -3,9 +3,13 @@ package com.example.onboarding.validator.driver;
 import com.example.onboarding.datastore.ConfigurationManager;
 import com.example.onboarding.exception.CountryNotSupportedException;
 import com.example.onboarding.model.Driver;
+
+import org.springframework.stereotype.Component;
+
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
+@Component
 public class DefaultDriverCountryValidator implements DriverParamsValidator {
     private ConfigurationManager configurationManager;
 

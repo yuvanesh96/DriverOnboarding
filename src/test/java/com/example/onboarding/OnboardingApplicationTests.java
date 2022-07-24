@@ -1,12 +1,19 @@
 package com.example.onboarding;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.example.onboarding.configuration.DocumentsRequired;
 import com.example.onboarding.controller.CabController;
 import com.example.onboarding.controller.DriverSignupController;
 import com.example.onboarding.datastore.CabManager;
 import com.example.onboarding.datastore.ConfigurationManager;
 import com.example.onboarding.datastore.DriverManager;
+import com.example.onboarding.exception.InvalidDriverIdException;
+import com.example.onboarding.exception.PhoneNumberAlreadyExistsException;
+import com.example.onboarding.exception.VerificationPendingException;
 import com.example.onboarding.model.Driver;
+import com.example.onboarding.model.response.GenericResponse;
+import com.example.onboarding.model.response.RegisterDriverResponse;
 import com.example.onboarding.service.DocumentVerificationService;
 import com.example.onboarding.service.SignupService;
 import com.example.onboarding.validator.ValidationRunner;
@@ -14,13 +21,14 @@ import com.example.onboarding.validator.driver.DefaultDriverCountryValidator;
 import com.example.onboarding.validator.driver.DefaultDriverPhoneValidator;
 import com.example.onboarding.validator.driver.DriverParamsValidator;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
@@ -55,51 +63,77 @@ public class OnboardingApplicationTests {
         validatorList.add(new DefaultDriverPhoneValidator(driverManager));
         validationRunner = new ValidationRunner(validatorList);
         //Service
-        documentVerificationService =
-                new DocumentVerificationService(driverManager,configurationManager);
-        signupService = new SignupService(driverManager, configurationManager
-                , validationRunner,documentVerificationService);
+        documentVerificationService = new DocumentVerificationService(driverManager, configurationManager);
+        signupService = new SignupService(driverManager, configurationManager, validationRunner, documentVerificationService);
         driverSignupController = new DriverSignupController(signupService);
-        cabController = new CabController(driverManager,cabManager);
-    }
-
-    @Test
-    void run() {
-
-        System.out.println("\n<<<<<<<<<< Starting our Test >>>>>>>>>\n");
-        final var id1 = driverSignupController.registerDriver("abc",
-                "9444494444", "India", "Blr");
-        cabController.registerCab(id1,"cab1","KA12345","SwiftDzire2020");
-
-        final Driver driver1 = driverManager.getDriver(id1);
-
-        final var id2 = driverSignupController.registerDriver("xyz",
-                "9876598765", "India", "Blr");
-        final Driver driver2 = driverManager.getDriver(id2);
-        System.out.println(driver2);
-
-
-
-        try {
-            Thread.sleep(500);
-
-            driverSignupController.updateVerifiedDocument(driver1.getId(),"Aadhaar");
-            driverSignupController.updateVerifiedDocument(driver1.getId(),
-                    "INR-PAN");
-            driverSignupController.updateVerifiedDocument(driver1.getId(),
-                    "INR-License");
-            driverSignupController.updateVerifiedDocument(driver1.getId(),
-                    "INR-RC");
-
-            driverSignupController.updateReady(driver1.getId(),true);
-        }
-        catch (Exception e){
-            System.err.println("Exception :" + e);
-        }
+        cabController = new CabController(driverManager, cabManager);
     }
 
     @AfterEach
-    void tearDown(){
+    void tearDown() {
         documentVerificationService.stop();
     }
+
+    @Test
+    void test_all_success_scenario() throws InterruptedException {
+        final var response = driverSignupController.registerDriver("abc",
+                "9444494444", "India", "Blr");
+        String id1 = ((RegisterDriverResponse)response.getBody()).getDriverId();
+        cabController.registerCab(id1, "cab1", "KA-AA-2345", "Swift-Dzire" +
+                "-2020");
+        final Driver driver = driverManager.getDriver(id1);
+        System.out.println("Driver Details : " + driver);
+
+        Thread.sleep(5000);
+
+        assertEquals(HttpStatus.OK,driverSignupController
+                .updateVerifiedDocument(driver.getId(),"Aadhaar").getStatusCode());
+        assertEquals(HttpStatus.OK,driverSignupController
+                .updateVerifiedDocument(driver.getId(), "INR-License").getStatusCode());
+        assertEquals(HttpStatus.OK,driverSignupController
+                .updateVerifiedDocument(driver.getId(), "INR-RC").getStatusCode());
+
+        assertEquals(HttpStatus.OK,driverSignupController
+                .updateReady(driver.getId(), true).getStatusCode());
+    }
+
+    @Test
+    void test_duplicate_phone_number(){
+        ResponseEntity response;
+        // driver 1
+        response = driverSignupController.registerDriver("abc",
+                "9444494444",
+                "India", "Blr");
+        assert(response.getStatusCode() == HttpStatus.OK);
+        // driver 2
+        response = driverSignupController.registerDriver("abc",
+                "9444494444",
+                "India", "Blr");
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,response.getStatusCode());
+        String actual = ((GenericResponse)response.getBody()).getMessage();
+        assertEquals(actual,
+                PhoneNumberAlreadyExistsException.class.getName());
+    }
+
+    @Test
+    void test_invalid_updates(){
+        ResponseEntity response;
+        // driver 1
+        response = driverSignupController.registerDriver("abc",
+                "9444494444",
+                "India", "Blr");
+        assert(response.getStatusCode() == HttpStatus.OK);
+        String id1 = ((RegisterDriverResponse)response.getBody()).getDriverId();
+
+        String actual = "";
+
+        // Updating status before verification.
+        response = driverSignupController.updateReady(id1,true);
+        actual = ((GenericResponse)response.getBody()).getMessage();
+        assertEquals(actual,VerificationPendingException.class.getName());
+
+
+    }
+
+
 }

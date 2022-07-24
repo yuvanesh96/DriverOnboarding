@@ -10,16 +10,28 @@ import com.example.onboarding.factory.DriverFactory;
 import com.example.onboarding.model.Driver;
 import com.example.onboarding.validator.ValidationRunner;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 @AllArgsConstructor
+@Service
 public class SignupService {
+    @Autowired
     DriverManager driverManager;
+
+    @Autowired
     ConfigurationManager configurationManager;
+
+    @Autowired
     ValidationRunner validationRunner;
+
+    @Autowired
     DocumentVerificationService documentVerificationService;
 
 
@@ -41,8 +53,9 @@ public class SignupService {
 
         if (!docsToVerify.contains(doc))
             throw new UnsupportedDocumentException();
-        System.out.println("Trigger Notification to " + driverId + "to notify" +
-                " " + " " + doc + "has been verified");
+        System.out.println("Triggering Notification to " + driverId + " to " +
+                "notify" +
+                " " + doc + " has been verified");
         driverManager.updateDocumentsVerified(driverId, doc);
     }
 
